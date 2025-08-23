@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Social App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Crear publicación -->
+    <div class="create-post">
+      <div class="user-profile">
+        <img src="assets/default-user.png" alt="user">
+      </div>
+      <div class="post-box">
+        <textarea id="postText" placeholder="Share your dev insights"></textarea>
+
+        <!-- Vista previa antes de postear -->
+        <div id="preview-area" class="preview-area"></div>
+
+        <div class="toolbar">
+          <div>
+            <label class="tool">
+              <input type="file" id="codeInput" accept=".js,.py,.java,.cpp,.txt" hidden>
+              💻 Code
+            </label>
+            <label class="tool">
+              <input type="file" id="imageInput" accept="image/*" hidden>
+              🖼️ Image
+            </label>
+            <label class="tool">
+              <input type="file" id="fileInput" hidden>
+              📎 File
+            </label>
+          </div>
+          <div class="right-side">
+            <select id="privacy">
+              <option value="Public">🌍 Public</option>
+              <option value="Friends">👥 Friends</option>
+              <option value="Only Me">🔒 Only Me</option>
+            </select>
+            <button class="post-btn" id="postBtn">POST</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <div class="feed" id="feed"></div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
