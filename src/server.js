@@ -1,5 +1,5 @@
 const express = require('express');
-const sequelize = require('./db');
+const sequelize = require('./config/db.config.js');
 const cors = require('cors');
 
 const User = require('./models/user.model');
@@ -8,9 +8,9 @@ const post = require('./models/post.model');
 const comment = require('./models/comment.model');
 const reaction = require('./models/reaction.model');
 
-const authRoutes = require('./routes/user.router');
-const profileRoutes = require('./routes/profile.router');
-const socialRoutes = require('./routes/social.router');
+const authRoutes = require('./routers/user.router');
+const profileRoutes = require('./routers/profile.router');
+const socialRoutes = require('./routers/social.router');
 
 require('./models/associations.model');
 
