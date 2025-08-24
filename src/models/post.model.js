@@ -24,6 +24,15 @@ const Post = sequelize.define('Post', {
         type: DataTypes.STRING(255),
         allowNull: true
     },
+    file_url: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+    },
+    privacy: {
+        type: DataTypes.STRING(50),
+        allowNull: false,
+        defaultValue: 'public'
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW

@@ -1,5 +1,5 @@
 const express = require('express');
-const sequelize = require('./config/db.config.js');
+const sequelize = require('./config/db.config');
 const cors = require('cors');
 
 const User = require('./models/user.model');
@@ -23,7 +23,7 @@ app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 
-sequelize.sync({force: false})
+sequelize.sync({alter: true})
     .then(() => {
         console.log('Database synced');
         app.listen(PORT,() => {
