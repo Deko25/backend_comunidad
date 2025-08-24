@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const {protect} = require('../middleware/authMiddleware');
-const profile = require('../models/Profile');
+const { createProfile } = require('../controllers/profile.controller');
+const profile = require('../models/profile.model');
 
 router.get('/profile', protect, async (req, res) => {
     try {
@@ -16,4 +17,5 @@ router.get('/profile', protect, async (req, res) => {
     }
 });
 
+router.post('/profile', protect, createProfile);
 module.exports = router;

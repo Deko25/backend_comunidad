@@ -1,15 +1,20 @@
 const express = require('express');
 const sequelize = require('./db');
 const cors = require('cors');
-const authRoutes = require('./routes/authRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const socialRoutes = require('./routes/socialRoutes');
-const post = require('./models/Post');
-const comment = require('./models/Comment');
-const reaction = require('./models/Reaction');
+
+const User = require('./models/user.model');
+const Profile = require('./models/profile.model');
+const post = require('./models/post.model');
+const comment = require('./models/comment.model');
+const reaction = require('./models/reaction.model');
+
+const authRoutes = require('./routes/user.router');
+const profileRoutes = require('./routes/profile.router');
+const socialRoutes = require('./routes/social.router');
+
+require('./models/associations.model');
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -18,7 +23,7 @@ app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 
-sequelize.sync()
+sequelize.sync({force: false})
     .then(() => {
         console.log('Database synced');
         app.listen(PORT,() => {

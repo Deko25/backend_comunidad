@@ -1,8 +1,8 @@
-const Post = require('../models/Post');
-const Comment = require('../models/Comment'); 
-const Reaction = require('../models/Reaction'); 
-const Profile = require('../models/Profile'); 
-const User = require('../models/User'); 
+const Post = require('../models/post.model');
+const Comment = require('../models/comment.model'); 
+const Reaction = require('../models/reaction.model'); 
+const Profile = require('../models/profile.model'); 
+const User = require('../models/user.model'); 
 
 exports.createPost = async (req, res) => {
     const profile_id = req.user.profile_id;

@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); 
-const profile = require('../models/Profile');
+const User = require('../models/user.model'); 
+const Profile = require('../models/profile.model');
 
 // Register an user
 exports.register = async (req, res) => {
@@ -17,7 +17,7 @@ exports.register = async (req, res) => {
             password_hash
         });
 
-        await profile.create({
+        await Profile.create({
             user_id: newUser.user_id,
             bio: '',
             skills: '',
@@ -46,6 +46,8 @@ exports.login = async (req, res) => {
             return res.status(400).json({error: 'Invalid email or password'});
         }
 
+        const userProfile = await Profile.findOne({where: {user_id: user.user_id}});
+
         const payload = {
             user: {
                 id: user.user_id,
@@ -58,7 +60,11 @@ exports.login = async (req, res) => {
             {expiresIn: '1h'},
             (err, token) => {
                 if (err) throw err;
-                res.json({token});
+
+                if(!userProfile.bio) {
+                    return res.json({token, profileExists: false});
+                }
+                res.json({token, profileExists: true});
             }
         );
     } catch (err) {
@@ -66,4 +72,3 @@ exports.login = async (req, res) => {
         res.status(500).json({error: 'Error in the server' });
     }
 };
-        
