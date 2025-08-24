@@ -6,13 +6,15 @@ const User = require('../models/user.model');
 
 exports.createPost = async (req, res) => {
     const profile_id = req.user.profile_id;
-    const {text_content, image_url, code_url} = req.body;
+    const {text_content, image_url, code_url, file_url, privacy} = req.body;
     try {
         const newPost = await Post.create({
             profile_id: profile_id,
             text_content,
             image_url,
-            code_url
+            code_url,
+            file_url,
+            privacy
         });
 
         res.status(201).json(newPost);
