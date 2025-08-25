@@ -54,6 +54,56 @@ exports.getPosts = async (req, res) => {
     }
 };
 
+exports.updatePost = async (req, res) => {
+    const { postId } = req.params;
+    const { text_content, image_url, code_url, file_url, privacy } = req.body;
+
+    try {
+        const post = await Post.findByPk(postId);
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        if (post.profile_id !== req.user.profile_id) {
+            return res.status(403).json({ error: 'You do not have permission to update this post' });
+        }
+
+        await post.update({
+            text_content,
+            image_url,
+            code_url,
+            file_url,
+            privacy
+        });
+
+        res.json({message: 'Post updated successfully', post});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error updating post' });
+    }
+};
+
+exports.deletePost = async (req, res) => {
+    const { postId } = req.params;
+
+    try {
+        const post = await Post.findByPk(postId);
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        if (post.profile_id !== req.user.profile_id) {
+            return res.status(403).json({ error: 'You do not have permission to delete this post' });
+        }
+
+        await post.destroy();
+        res.json({ message: 'Post deleted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error deleting post' });
+    }
+};
+
 exports.createComment = async (req, res) => {
     const {post_id} = req.params;
     const profile_id = req.user.profile_id;
