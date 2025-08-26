@@ -1,13 +1,13 @@
-const Profile = require('../models/profile.model');
+import Profile from '../models/profile.model.js';
 
-exports.createProfile = async (req, res) => {
+export const createProfile = async (req, res) => {
     const { bio, skills, experience, projects } = req.body;
     const user_id = req.user.id;
 
     try {
         await Profile.update(
             { bio, skills, experience, projects },
-            { where: { user_id: user_id } }
+            { where: { user_id } }
         );
 
         res.status(200).json({ message: 'Profile updated successfully' });

@@ -1,22 +1,18 @@
-const express = require('express');
-const sequelize = require('./config/db.config');
-const cors = require('cors');
-const logger = require('morgan')
-const {Server} = require('socket.io')
-const {createServer} = require('node:http')
-const chatSocket = require("./sockets/chat.socket.js")
+import express from 'express';
+import sequelize from './config/db.config.js';
+import cors from 'cors';
 
-const User = require('./models/user.model');
-const Profile = require('./models/profile.model');
-const post = require('./models/post.model');
-const comment = require('./models/comment.model');
-const reaction = require('./models/reaction.model');
+import User from './models/user.model.js';
+import Profile from './models/profile.model.js';
+import Post from './models/post.model.js';
+import Comment from './models/comment.model.js';
+import Reaction from './models/reaction.model.js';
 
-const authRoutes = require('./routers/user.router');
-const profileRoutes = require('./routers/profile.router');
-const socialRoutes = require('./routers/social.router');
+import authRoutes from './routers/user.router.js';
+import profileRoutes from './routers/profile.router.js';
+import socialRoutes from './routers/social.router.js';
 
-require('./models/associations.model');
+import './models/associations.model.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

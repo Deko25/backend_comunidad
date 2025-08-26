@@ -1,5 +1,5 @@
-const User = require('./user.model');
-const Profile = require('./profile.model');
+import User from './user.model.js';
+import Profile from './profile.model.js';
 
 User.hasOne(Profile, {
     foreignKey: 'user_id',
