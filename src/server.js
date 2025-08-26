@@ -23,11 +23,35 @@ app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 
-sequelize.sync({ alter: true })
+const server = createServer(app)
+
+const io = new Server(server, {
+    connectionStateRecovery: {
+        maxDisconnectionDuration // El tiempo maximo de desconexion
+    }
+})
+
+io.on('connection', (socket) => {
+    console.log('an user has connected')
+
+    socket.on('disconnect', () => {
+        console.log('an user has disconnected')
+    })
+
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', msg)
+    })
+})
+
+chatSocket(io)
+
+app.use(logger('dev'))
+
+sequelize.sync({alter: true})
     .then(() => {
         console.log('Database synced');
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        app.listen(PORT,() => {
+            console.log(`Server running in port http://localhost:${PORT}`);
         });
     })
     .catch(err => {
