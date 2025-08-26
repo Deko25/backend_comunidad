@@ -14,4 +14,4 @@ function chatSocket(io) {
   });
 }
 
-module.exports = chatSocket
+export default chatSocket;
