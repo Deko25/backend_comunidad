@@ -1,15 +1,15 @@
 function chatSocket(io) {
   io.on("connection", (socket) => {
-    console.log("Usuario conectado");
+    console.log("user connected");
 
     // Escuchar mensaje del cliente
     socket.on("chat message", (msg) => {
-      console.log("Mensaje recibido:", msg);
+      console.log("message received", msg);
       io.emit("chat message", msg); // Reenviarlo a todos
     });
 
     socket.on("disconnect", () => {
-      console.log("Usuario desconectado");
+      console.log("user disconnected");
     });
   });
 }

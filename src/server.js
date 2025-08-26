@@ -22,6 +22,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
+app.use(logger('dev'))
 app.use(express.json());
 app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
@@ -30,26 +31,16 @@ app.use('/api', socialRoutes);
 const server = createServer(app)
 
 const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
     connectionStateRecovery: {
         // maxDisconnectionDuration // El tiempo maximo de desconexion
     }
 })
 
-io.on('connection', (socket) => {
-    console.log('an user has connected')
-
-    socket.on('disconnect', () => {
-        console.log('an user has disconnected')
-    })
-
-    socket.on('chat message', (msg) => {
-        io.emit('chat message', msg)
-    })
-})
-
 chatSocket(io)
-
-app.use(logger('dev'))
 
 sequelize.sync({alter: true})
     .then(() => {
