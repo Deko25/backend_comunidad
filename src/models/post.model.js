@@ -1,6 +1,6 @@
-const {DataTypes} = require('sequelize');
-const sequelize = require('../config/db.config');
-const profile = require('./profile.model');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.config.js';
+import Profile from './profile.model.js';
 
 const Post = sequelize.define('Post', {
     post_id: {
@@ -42,9 +42,9 @@ const Post = sequelize.define('Post', {
     timestamps: false
 });
 
-Post.belongsTo(profile, {
+Post.belongsTo(Profile, {
     foreignKey: 'profile_id',
     onDelete: 'CASCADE'
 });
 
-module.exports = Post;
+export default Post;

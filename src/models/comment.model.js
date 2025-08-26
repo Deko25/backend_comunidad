@@ -1,7 +1,7 @@
-const {DataTypes} = require('sequelize');
-const sequelize = require('../config/db.config');
-const post = require('./post.model');
-const profile = require('./profile.model');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.config.js';
+import Post from './post.model.js';
+import Profile from './profile.model.js';
 
 const Comment = sequelize.define('Comment', {
     comment_id: {
@@ -29,13 +29,15 @@ const Comment = sequelize.define('Comment', {
     tableName: 'comments',
     timestamps: false
 });
-Comment.belongsTo(post, {
+
+Comment.belongsTo(Post, {
     foreignKey: 'post_id',
     onDelete: 'CASCADE'
 });
-Comment.belongsTo(profile, {
+
+Comment.belongsTo(Profile, {
     foreignKey: 'profile_id',
     onDelete: 'CASCADE'
 });
 
-module.exports = Comment;
+export default Comment;

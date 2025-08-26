@@ -1,15 +1,15 @@
-const Post = require('../models/post.model');
-const Comment = require('../models/comment.model'); 
-const Reaction = require('../models/reaction.model'); 
-const Profile = require('../models/profile.model'); 
-const User = require('../models/user.model'); 
+import Post from '../models/post.model.js';
+import Comment from '../models/comment.model.js';
+import Reaction from '../models/reaction.model.js';
+import Profile from '../models/profile.model.js';
+import User from '../models/user.model.js';
 
-exports.createPost = async (req, res) => {
+export const createPost = async (req, res) => {
     const profile_id = req.user.profile_id;
-    const {text_content, image_url, code_url, file_url, privacy} = req.body;
+    const { text_content, image_url, code_url, file_url, privacy } = req.body;
     try {
         const newPost = await Post.create({
-            profile_id: profile_id,
+            profile_id,
             text_content,
             image_url,
             code_url,
@@ -20,29 +20,29 @@ exports.createPost = async (req, res) => {
         res.status(201).json(newPost);
     } catch (err) {
         console.error(err);
-        res.status(500).json({error: 'Error creating Post'});
+        res.status(500).json({ error: 'Error creating Post' });
     }
 };
 
-exports.getPosts = async (req, res) => {
+export const getPosts = async (req, res) => {
     try {
         const posts = await Post.findAll({
             order: [['created_at', 'DESC']],
             include: [
                 {
-                    model: Profile, 
+                    model: Profile,
                     attributes: ['profile_id', 'bio', 'skills', 'experience', 'projects'],
-                    include: [{model: User, attributes: ['first_name', 'last_name', 'email']}] 
+                    include: [{ model: User, attributes: ['first_name', 'last_name', 'email'] }]
                 },
                 {
-                    model: Comment, 
-                    attributes: ['comment_id', 'post_id', 'profile_id', 'text_content', 'created_at'],
-                    include: [{ model: Profile, attributes: ['profile_id', 'bio'],}] 
+                    model: Comment,
+                    attributes: ['comment_id', 'post_id', 'profile_id', 'content', 'created_at'],
+                    include: [{ model: Profile, attributes: ['profile_id', 'bio'] }]
                 },
                 {
-                    model: Reaction, 
-                    attributes: ['reaction_id', 'post_id', 'profile_id', 'type'],
-                    include: [{ model: Profile, attributes: ['profile_id', 'bio'],}] 
+                    model: Reaction,
+                    attributes: ['reaction_id', 'post_id', 'profile_id', 'reaction_type', 'created_at'],
+                    include: [{ model: Profile, attributes: ['profile_id', 'bio'] }]
                 }
             ],
         });
@@ -50,11 +50,11 @@ exports.getPosts = async (req, res) => {
         res.json(posts);
     } catch (err) {
         console.error(err);
-        res.status(500).json({error: 'Error getting posts'});
+        res.status(500).json({ error: 'Error getting posts' });
     }
 };
 
-exports.updatePost = async (req, res) => {
+export const updatePost = async (req, res) => {
     const { postId } = req.params;
     const { text_content, image_url, code_url, file_url, privacy } = req.body;
 
@@ -76,14 +76,14 @@ exports.updatePost = async (req, res) => {
             privacy
         });
 
-        res.json({message: 'Post updated successfully', post});
+        res.json({ message: 'Post updated successfully', post });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error updating post' });
     }
 };
 
-exports.deletePost = async (req, res) => {
+export const deletePost = async (req, res) => {
     const { postId } = req.params;
 
     try {
@@ -104,14 +104,14 @@ exports.deletePost = async (req, res) => {
     }
 };
 
-exports.createComment = async (req, res) => {
-    const {post_id} = req.params;
+export const createComment = async (req, res) => {
+    const { post_id } = req.params;
     const profile_id = req.user.profile_id;
-    const {content} = req.body;
+    const { content } = req.body;
     try {
         const post = await Post.findByPk(post_id);
         if (!post) {
-            return res.status(404).json({error: 'Post not found'});
+            return res.status(404).json({ error: 'Post not found' });
         }
         const newComment = await Comment.create({
             post_id,
@@ -122,18 +122,18 @@ exports.createComment = async (req, res) => {
         res.status(201).json(newComment);
     } catch (err) {
         console.error(err);
-        res.status(500).json({error: 'Error creating comment'});
+        res.status(500).json({ error: 'Error creating comment' });
     }
 };
 
-exports.createReaction = async (req, res) => {
-    const {post_id} = req.params;
+export const createReaction = async (req, res) => {
+    const { post_id } = req.params;
     const profile_id = req.user.profile_id;
-    const {reaction_type} = req.body;
+    const { reaction_type } = req.body;
     try {
         const post = await Post.findByPk(post_id);
         if (!post) {
-            return res.status(404).json({error: 'Post not found'});
+            return res.status(404).json({ error: 'Post not found' });
         }
         const newReaction = await Reaction.create({
             post_id,
@@ -144,6 +144,6 @@ exports.createReaction = async (req, res) => {
         res.status(201).json(newReaction);
     } catch (err) {
         console.error(err);
-        res.status(500).json({error: 'Error creating reaction'});
+        res.status(500).json({ error: 'Error creating reaction' });
     }
 };

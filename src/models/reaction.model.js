@@ -1,9 +1,9 @@
-const {DataTypes} = require('sequelize');
-const sequelize = require('../config/db.config');
-const post = require('./post.model');
-const profile = require('./profile.model');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.config.js';
+import Post from './post.model.js';
+import Profile from './profile.model.js';
 
-const reaction = sequelize.define('Reaction', {
+const Reaction = sequelize.define('Reaction', {
     reaction_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -30,13 +30,14 @@ const reaction = sequelize.define('Reaction', {
     timestamps: false
 });
 
-reaction.belongsTo(post, {
+Reaction.belongsTo(Post, {
     foreignKey: 'post_id',
     onDelete: 'CASCADE'
 });
-reaction.belongsTo(profile, {
+
+Reaction.belongsTo(Profile, {
     foreignKey: 'profile_id',
     onDelete: 'CASCADE'
 });
 
-module.exports = reaction;
+export default Reaction;
