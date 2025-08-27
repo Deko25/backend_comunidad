@@ -8,4 +8,4 @@ npm install  jsonwebtoken
 npm install bcryptjs
 npm install -D nodemon
 
-
+npm install sequelize pg pg-hstore //for supabase whit sequelize

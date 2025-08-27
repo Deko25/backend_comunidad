@@ -54,3 +54,18 @@ sequelize.sync({alter: true})
     .catch(err => {
         console.error('Unable to connect to the database', err.message); 
     });
+
+
+
+
+
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ ¡Conexión exitosa a la base de datos!');
+  } catch (error) {
+    console.error('❌ Error al conectar a la base de datos:', error);
+  } 
+}
+
+testConnection();

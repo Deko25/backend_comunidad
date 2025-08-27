@@ -1,7 +1,7 @@
 {
   "name": "backend_comunidad",
   "version": "1.0.0",
-  "type":"module",
+  "type": "module",
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -24,6 +24,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-    
   }
 }
