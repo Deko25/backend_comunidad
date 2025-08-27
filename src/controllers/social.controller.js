@@ -1,22 +1,53 @@
+import jwt from 'jsonwebtoken';
 import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import Reaction from '../models/reaction.model.js';
 import Profile from '../models/profile.model.js';
 import User from '../models/user.model.js';
 
+const JWT_SECRET = 'your_jwt_secret';
+
+export const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token == null){
+        return res.sendStatus(401).json({error: 'Unauthorized: No token provided'});
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.sendStatus(403).json({error: 'Forbidden: Invalid token'});
+        }
+        req.user = user;
+        next();
+    });
+};
+
 export const createPost = async (req, res) => {
+    // text_content y privacy ahora vienen de req.body
+    const { text_content, privacy } = req.body;
     const profile_id = req.user.profile_id;
-    const { text_content, image_url, code_url, file_url, privacy } = req.body;
+    
+    // Obtener la ruta del archivo subido
+    let file_url = null;
+    let file_type = null;
+
+    if (req.file) {
+        file_url = req.file.path; 
+        file_type = req.file.mimetype; 
+    }
+
     try {
         const newPost = await Post.create({
             profile_id,
             text_content,
-            image_url,
-            code_url,
-            file_url,
-            privacy
+            privacy,
+            // Guardamos las rutas de los archivos si existen
+            image_url: file_type.startsWith('image/') ? file_url : null,
+            code_url: file_type.includes('javascript') || file_type.includes('text') ? file_url : null,
+            file_url: file_url
         });
-
         res.status(201).json(newPost);
     } catch (err) {
         console.error(err);
@@ -46,7 +77,6 @@ export const getPosts = async (req, res) => {
                 }
             ],
         });
-
         res.json(posts);
     } catch (err) {
         console.error(err);
