@@ -5,7 +5,8 @@ import Profile from '../models/profile.model.js';
 
 // Register a user
 export const register = async (req, res) => {
-    const { first_name, last_name, email, password } = req.body;
+    
+    const { first_name, last_name, email, password, role_id } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
         const password_hash = await bcrypt.hash(password, salt);
@@ -14,7 +15,8 @@ export const register = async (req, res) => {
             first_name,
             last_name,
             email,
-            password_hash
+            password_hash,
+            role_id
         });
 
         await Profile.create({
@@ -48,9 +50,11 @@ export const login = async (req, res) => {
 
         const userProfile = await Profile.findOne({ where: { user_id: user.user_id } });
 
+
         const payload = {
             user: {
                 id: user.user_id,
+                profile_id: userProfile.profile_id
             },
         };
 
@@ -72,3 +76,4 @@ export const login = async (req, res) => {
         res.status(500).json({ error: 'Error in the server' });
     }
 };
+
