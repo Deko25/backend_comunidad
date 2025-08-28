@@ -1,34 +1,27 @@
 import express from 'express';
-import * as socialController from '../controllers/social.controller.js';
+import { getPosts, createPost, deletePost, updatePost } from '../controllers/social.controller.js';
 import { protect } from '../middleware/user.middleware.js';
 import multer from 'multer';
 
 const router = express.Router();
 
-// Configuración de Multer para la subida de archivos
+// Multer configuration
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-    // Especifica la carpeta de destino para los archivos
-    cb(null, 'uploads/');
-    },
-
-    filename: function (req, file, cb) {
-    // Usa un nombre de archivo único para evitar colisiones
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/posts/');
+  },
+  filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, uniqueSuffix + '-' + file.originalname);
-    }
+  }
 });
-
 const upload = multer({ storage: storage });
 
-router.put('/posts/:postId', protect, socialController.updatePost);
-router.delete('/posts/:postId', protect, socialController.deletePost);
-
-
-router.post('/posts', protect, upload.single('postFile'), socialController.createPost);
-
-router.get('/posts', protect, socialController.getPosts);
-router.post('/posts/:postId/comments', protect, socialController.createComment);
-router.post('/posts/:postId/reactions', protect, socialController.createReaction);
+// Routes for Postssssssssss
+router.get('/posts', protect, getPosts);
+router.post('/posts', protect, upload.single('postFile'), createPost);
+router.delete('/posts/:postId', protect, deletePost);
+router.put('/posts/:postId', protect, upload.single('postFile'), updatePost);
 
 export default router;
+

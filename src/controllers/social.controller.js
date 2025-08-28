@@ -25,61 +25,72 @@ export const authenticateToken = (req, res, next) => {
 };
 
 export const createPost = async (req, res) => {
-    // text_content y privacy ahora vienen de req.body
+    // text_content y privacy vienen de req.body
     const { text_content, privacy } = req.body;
-    const profile_id = req.user.profile_id;
     
-    // Obtener la ruta del archivo subido
-    let file_url = null;
-    let file_type = null;
-
-    if (req.file) {
-        file_url = req.file.path; 
-        file_type = req.file.mimetype; 
-    }
-
+    // Obtener user_id del token de autenticación
+    const user_id = req.user.id;
+    
     try {
-        const newPost = await Post.create({
+        // Buscar el perfil del usuario usando el user_id
+        const profile = await Profile.findOne({ where: { user_id } });
+        
+        // Si el perfil no se encuentra, no se puede crear el post
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
+        // Ahora sí, obtenemos el profile_id
+        const profile_id = profile.profile_id;
+    
+        // Lógica para manejar el archivo adjunto
+        let postData = {
             profile_id,
             text_content,
             privacy,
-            // Guardamos las rutas de los archivos si existen
-            image_url: file_type.startsWith('image/') ? file_url : null,
-            code_url: file_type.includes('javascript') || file_type.includes('text') ? file_url : null,
-            file_url: file_url
-        });
+        };
+    
+        if (req.file) {
+            const file_type = req.file.mimetype;
+            const file_url = req.file.path;
+    
+            if (file_type.startsWith('image/')) {
+                postData.image_url = file_url;
+            } else if (file_type.startsWith('text/') || req.file.originalname.endsWith('.js') || req.file.originalname.endsWith('.py') || req.file.originalname.endsWith('.java') || req.file.originalname.endsWith('.cpp') || req.file.originalname.endsWith('.txt')) {
+                postData.code_url = file_url;
+            } else {
+                postData.file_url = file_url;
+            }
+        }
+    
+        const newPost = await Post.create(postData);
         res.status(201).json(newPost);
     } catch (err) {
-        console.error(err);
+        console.error('Error creating post:', err);
         res.status(500).json({ error: 'Error creating Post' });
     }
 };
 
+
 export const getPosts = async (req, res) => {
     try {
         const posts = await Post.findAll({
+            
             order: [['created_at', 'DESC']],
             include: [
                 {
                     model: Profile,
-                    attributes: ['profile_id', 'bio', 'skills', 'experience', 'projects'],
-                    include: [{ model: User, attributes: ['first_name', 'last_name', 'email'] }]
-                },
-                {
-                    model: Comment,
-                    attributes: ['comment_id', 'post_id', 'profile_id', 'content', 'created_at'],
-                    include: [{ model: Profile, attributes: ['profile_id', 'bio'] }]
-                },
-                {
-                    model: Reaction,
-                    attributes: ['reaction_id', 'post_id', 'profile_id', 'reaction_type', 'created_at'],
-                    include: [{ model: Profile, attributes: ['profile_id', 'bio'] }]
+                    attributes: ['profile_id', 'profile_photo'],
+                    include: [{
+                        model: User,
+                        attributes: ['first_name', 'last_name', 'email']
+                    }]
                 }
             ],
         });
         res.json(posts);
     } catch (err) {
-        console.error(err);
+        console.error('Error fetching posts:', err);
         res.status(500).json({ error: 'Error getting posts' });
     }
 };
@@ -87,14 +98,21 @@ export const getPosts = async (req, res) => {
 export const updatePost = async (req, res) => {
     const { postId } = req.params;
     const { text_content, image_url, code_url, file_url, privacy } = req.body;
+    const user_id = req.user.id; // Get user_id from JWT
 
     try {
+        const profile = await Profile.findOne({ where: { user_id } });
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
         const post = await Post.findByPk(postId);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        if (post.profile_id !== req.user.profile_id) {
+        // Correct security check
+        if (post.profile_id !== profile.profile_id) {
             return res.status(403).json({ error: 'You do not have permission to update this post' });
         }
 
@@ -115,14 +133,21 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
     const { postId } = req.params;
+    const user_id = req.user.id; // Get user_id from JWT
 
     try {
+        const profile = await Profile.findOne({ where: { user_id } });
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+
         const post = await Post.findByPk(postId);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        if (post.profile_id !== req.user.profile_id) {
+        // Correct security check
+        if (post.profile_id !== profile.profile_id) {
             return res.status(403).json({ error: 'You do not have permission to delete this post' });
         }
 
@@ -136,16 +161,23 @@ export const deletePost = async (req, res) => {
 
 export const createComment = async (req, res) => {
     const { post_id } = req.params;
-    const profile_id = req.user.profile_id;
+    const user_id = req.user.id; // Correct way to get user_id
     const { content } = req.body;
+    
     try {
+        const profile = await Profile.findOne({ where: { user_id } });
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+        
         const post = await Post.findByPk(post_id);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
+        
         const newComment = await Comment.create({
             post_id,
-            profile_id,
+            profile_id: profile.profile_id, // Use the correct profile_id
             content
         });
 
@@ -158,16 +190,23 @@ export const createComment = async (req, res) => {
 
 export const createReaction = async (req, res) => {
     const { post_id } = req.params;
-    const profile_id = req.user.profile_id;
+    const user_id = req.user.id; // Correct way to get user_id
     const { reaction_type } = req.body;
+    
     try {
+        const profile = await Profile.findOne({ where: { user_id } });
+        if (!profile) {
+            return res.status(404).json({ error: 'Profile not found' });
+        }
+
         const post = await Post.findByPk(post_id);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
+
         const newReaction = await Reaction.create({
             post_id,
-            profile_id,
+            profile_id: profile.profile_id, // Use the correct profile_id
             reaction_type
         });
 
