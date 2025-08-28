@@ -31,7 +31,7 @@ app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', roleRoutes);
-app.use('/api/notifications', notificationRoutes); 
+app.use('/api', notificationRoutes); 
 app.use('/uploads', express.static('uploads'));
 
 const server = createServer(app);
