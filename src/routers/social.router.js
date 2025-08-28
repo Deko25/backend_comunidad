@@ -17,10 +17,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Routes for Posts
+// Routes for Postssssssssss
 router.get('/posts', protect, getPosts);
 router.post('/posts', protect, upload.single('postFile'), createPost);
 router.delete('/posts/:postId', protect, deletePost);
 router.put('/posts/:postId', protect, upload.single('postFile'), updatePost);
 
 export default router;
+
