@@ -42,9 +42,4 @@ const Post = sequelize.define('Post', {
     timestamps: false
 });
 
-Post.belongsTo(Profile, {
-    foreignKey: 'profile_id',
-    onDelete: 'CASCADE'
-});
-
 export default Post;
