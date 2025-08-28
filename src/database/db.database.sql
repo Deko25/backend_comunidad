@@ -18,9 +18,7 @@ CREATE TABLE "profiles" (
 	"profile_id" SERIAL PRIMARY KEY,
 	"user_id" INTEGER NOT NULL UNIQUE,
 	"bio" TEXT,
-	"skills" TEXT,
-	"experience" TEXT,
-	"projects" TEXT,
+	"profile_photo" TEXT,
 	FOREIGN KEY("user_id") REFERENCES "users"("user_id") ON DELETE CASCADE
 );
 

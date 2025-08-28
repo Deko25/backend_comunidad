@@ -25,6 +25,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(logger('dev'))
 app.use(express.json());
+app.use('/uploads/profile_photos', express.static('uploads/profile_photos')); 
 app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
@@ -61,12 +62,12 @@ sequelize.sync({alter: true})
 
 
 async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ ¡Conexión exitosa a la base de datos!');
-  } catch (error) {
-    console.error('❌ Error al conectar a la base de datos:', error);
-  } 
+    try {
+        await sequelize.authenticate();
+        console.log('¡Conexión exitosa a la base de datos!');
+    } catch (error) {
+        console.error('Error al conectar a la base de datos:', error);
+    } 
 }
 
 testConnection();
