@@ -16,16 +16,8 @@ const Profile = sequelize.define('Profile', {
         type: DataTypes.TEXT,
         allowNull: true
     },
-    skills: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
-    experience: {
-        type: DataTypes.TEXT,
-        allowNull: true
-    },
-    projects: {
-        type: DataTypes.TEXT,
+    profile_photo: {
+        type: DataTypes.STRING(255),
         allowNull: true
     }
 }, {

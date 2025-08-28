@@ -1,23 +1,24 @@
 import express from 'express';
-import { protect } from '../middleware/user.middleware.js';
-import { createProfile } from '../controllers/profile.controller.js';
-import Profile from '../models/profile.model.js';
+import { updateProfile, getProfile, getProfileStatus } from '../controllers/profile.controller.js';
+import { protect } from '../middleware/user.middleware.js'; 
+import multer from 'multer';
 
 const router = express.Router();
 
-router.get('/profile', protect, async (req, res) => {
-    try {
-        const profileData = await Profile.findOne({ where: { user_id: req.user.id } });
-        if (!profileData) {
-            return res.status(404).json({ message: 'Profile not found' });
-        }
-        res.json(profileData);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send({ error: 'Server error' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/profile_photos/'); 
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
     }
 });
 
-router.post('/profile', protect, createProfile);
+const upload = multer({ storage: storage });
+
+router.put('/profile', protect, upload.single('profilePhoto'), updateProfile);
+router.get('/profile', protect, getProfile);
+router.get('/profile/status', protect, getProfileStatus); 
 
 export default router;
