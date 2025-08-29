@@ -33,27 +33,22 @@ export const createPost = async (req, res) => {
     
     try {
         // Buscar el perfil del usuario usando el user_id
-        const profile = await Profile.findOne({ where: { user_id } });
+        const profile = await Profile.findOne({ where: { user_id }, include: [{ model: User, attributes: ['first_name', 'last_name'] }] });
         
-        // Si el perfil no se encuentra, no se puede crear el post
         if (!profile) {
             return res.status(404).json({ error: 'Profile not found' });
         }
-        
-        // Ahora sí, obtenemos el profile_id
         const profile_id = profile.profile_id;
-    
-        // Lógica para manejar el archivo adjunto
+
         let postData = {
             profile_id,
             text_content,
             privacy,
         };
-    
+
         if (req.file) {
             const file_type = req.file.mimetype;
             const file_url = req.file.path;
-    
             if (file_type.startsWith('image/')) {
                 postData.image_url = file_url;
             } else if (file_type.startsWith('text/') || req.file.originalname.endsWith('.js') || req.file.originalname.endsWith('.py') || req.file.originalname.endsWith('.java') || req.file.originalname.endsWith('.cpp') || req.file.originalname.endsWith('.txt')) {
@@ -62,8 +57,47 @@ export const createPost = async (req, res) => {
                 postData.file_url = file_url;
             }
         }
-    
+
         const newPost = await Post.create(postData);
+
+        // --- Notificación y Socket.io para todos los usuarios ---
+        try {
+            const Notification = (await import('../models/notification.model.js')).default;
+            const userName = profile.User ? `${profile.User.first_name} ${profile.User.last_name}` : 'Alguien';
+            const profilePhoto = profile.profile_photo || null;
+            const message = `${userName} hizo una nueva publicación`;
+            // Obtener todos los perfiles (usuarios)
+            const allProfiles = await Profile.findAll();
+            // Crear notificación para cada usuario
+            const notifications = await Promise.all(
+                allProfiles.map(async (p) => {
+                    const notif = await Notification.create({
+                        profile_id: p.profile_id,
+                        message,
+                        type: 'new_post',
+                        status: 'unread'
+                    });
+                    // Emitir por socket solo a los conectados (puedes personalizar esto)
+                    if (req.app && req.app.get('io')) {
+                        req.app.get('io').emit('new_notification', {
+                            notification_id: notif.notification_id,
+                            profile_id: p.profile_id,
+                            message,
+                            type: 'new_post',
+                            profile_photo: profilePhoto,
+                            user_name: userName,
+                            date: notif.date,
+                            status: notif.status
+                        });
+                    }
+                    return notif;
+                })
+            );
+        } catch (notifErr) {
+            // Si falla la notificación, solo loguea el error, no afecta la publicación
+            console.error('Error creando notificación:', notifErr);
+        }
+
         res.status(201).json(newPost);
     } catch (err) {
         console.error('Error creating post:', err);

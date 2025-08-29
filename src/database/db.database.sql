@@ -68,11 +68,13 @@ CREATE TABLE "reactions" (
 CREATE TABLE "notifications" (
 	"notification_id" SERIAL PRIMARY KEY,
 	"profile_id" INTEGER NOT NULL,
+	"post_id" INTEGER NOT NULL,
 	"message" TEXT NOT NULL,
 	"type" VARCHAR(50) NOT NULL,
 	"date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	"status" VARCHAR(20) DEFAULT 'unread',
-	FOREIGN KEY("profile_id") REFERENCES "profiles"("profile_id") ON DELETE CASCADE
+	FOREIGN KEY("profile_id") REFERENCES "profiles"("profile_id") ON DELETE CASCADE,
+	FOREIGN KEY("post_id") REFERENCES "posts"("post_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "chats" (

@@ -16,6 +16,7 @@ import authRoutes from './routers/user.router.js';
 import profileRoutes from './routers/profile.router.js';
 import socialRoutes from './routers/social.router.js';
 import roleRoutes from './routers/role.router.js';
+import notificationRoutes from './routers/notification.router.js';
 
 import './models/associations.model.js';
 
@@ -30,6 +31,7 @@ app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', roleRoutes);
+app.use('/api', notificationRoutes);
 app.use('/uploads', express.static('uploads'));
 
 const server = createServer(app)
@@ -43,6 +45,10 @@ const io = new Server(server, {
         // maxDisconnectionDuration // El tiempo maximo de desconexion
     }
 })
+
+
+// Hacer que io esté disponible en los controladores
+app.set('io', io);
 
 chatSocket(io)
 
