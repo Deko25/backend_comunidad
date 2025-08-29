@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import cloudinary from '../config/cloudinary.config.js';
 import Post from '../models/post.model.js';
 import Comment from '../models/comment.model.js';
 import Reaction from '../models/reaction.model.js';
@@ -25,16 +26,10 @@ export const authenticateToken = (req, res, next) => {
 };
 
 export const createPost = async (req, res) => {
-    // text_content y privacy vienen de req.body
     const { text_content, privacy } = req.body;
-    
-    // Obtener user_id del token de autenticación
     const user_id = req.user.id;
-    
     try {
-        // Buscar el perfil del usuario usando el user_id
         const profile = await Profile.findOne({ where: { user_id }, include: [{ model: User, attributes: ['first_name', 'last_name'] }] });
-        
         if (!profile) {
             return res.status(404).json({ error: 'Profile not found' });
         }
@@ -46,16 +41,19 @@ export const createPost = async (req, res) => {
             privacy,
         };
 
-        if (req.file) {
-            const file_type = req.file.mimetype;
-            const file_url = req.file.path;
-            if (file_type.startsWith('image/')) {
-                postData.image_url = file_url;
-            } else if (file_type.startsWith('text/') || req.file.originalname.endsWith('.js') || req.file.originalname.endsWith('.py') || req.file.originalname.endsWith('.java') || req.file.originalname.endsWith('.cpp') || req.file.originalname.endsWith('.txt')) {
-                postData.code_url = file_url;
-            } else {
-                postData.file_url = file_url;
+        // Multer .fields() => req.files
+        const files = req.files || {};
+        const file = files.postFile?.[0] || files.image?.[0] || files.file?.[0];
+        if (file && file.mimetype.startsWith('image/')) {
+            try {
+                const result = await cloudinary.uploader.upload(file.path, { folder: 'posts' });
+                postData.image_url = result.secure_url;
+            } catch (err) {
+                console.error('Error subiendo a Cloudinary:', err);
+                postData.image_url = file.path; // fallback local
             }
+        } else if (file) {
+            postData.file_url = file.path;
         }
 
         const newPost = await Post.create(postData);
