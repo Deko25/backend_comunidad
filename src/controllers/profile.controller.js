@@ -1,30 +1,40 @@
 import Profile from '../models/profile.model.js';
-import User from '../models/user.model.js'; 
+import User from '../models/user.model.js';
 import Reaction from '../models/reaction.model.js';
 import Post from '../models/post.model.js';
+import cloudinary from '../config/cloudinary.config.js';
+import multer from 'multer';
 
+const upload = multer({ dest: 'uploads/profile_photos/' });
 
 export const updateProfile = async (req, res) => {
     try {
         const { bio } = req.body;
-        const profilePhotoPath = req.file ? req.file.path : null;
-
+        let profilePhotoUrl = null;
+        if (req.file) {
+            try {
+                const result = await cloudinary.uploader.upload(req.file.path, {
+                    folder: 'profile_photos',
+                });
+                profilePhotoUrl = result.secure_url;
+            } catch (err) {
+                console.error('Error uploading to Cloudinary:', err);
+                return res.status(500).json({ message: 'Error uploading image to Cloudinary' });
+            }
+        }
         const user_id = req.user.id;
-
         const [profile, created] = await Profile.findOrCreate({
             where: { user_id },
             defaults: {
                 bio: bio,
-                profile_photo: profilePhotoPath
+                profile_photo: profilePhotoUrl
             }
         });
-        
         if (!created) {
             profile.bio = bio || profile.bio;
-            profile.profile_photo = profilePhotoPath || profile.profile_photo;
+            profile.profile_photo = profilePhotoUrl || profile.profile_photo;
             await profile.save();
         }
-
         res.status(200).json({ message: 'Profile updated successfully', profile });
     } catch (error) {
         console.error('Error updating profile:', error);

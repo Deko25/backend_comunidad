@@ -19,9 +19,17 @@ const upload = multer({ storage: storage });
 
 // Routes for Postssssssssss
 router.get('/posts', protect, getPosts);
-router.post('/posts', protect, upload.single('postFile'), createPost);
+router.post('/posts', protect, upload.fields([
+  { name: 'postFile', maxCount: 1 },
+  { name: 'image', maxCount: 1 },
+  { name: 'file', maxCount: 1 }
+]), createPost);
 router.delete('/posts/:postId', protect, deletePost);
-router.put('/posts/:postId', protect, upload.single('postFile'), updatePost);
+router.put('/posts/:postId', protect, upload.fields([
+  { name: 'postFile', maxCount: 1 },
+  { name: 'image', maxCount: 1 },
+  { name: 'file', maxCount: 1 }
+]), updatePost);
 
 export default router;
 
