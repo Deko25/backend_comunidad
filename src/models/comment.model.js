@@ -30,14 +30,4 @@ const Comment = sequelize.define('Comment', {
     timestamps: false
 });
 
-Comment.belongsTo(Post, {
-    foreignKey: 'post_id',
-    onDelete: 'CASCADE'
-});
-
-Comment.belongsTo(Profile, {
-    foreignKey: 'profile_id',
-    onDelete: 'CASCADE'
-});
-
 export default Comment;

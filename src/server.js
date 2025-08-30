@@ -3,6 +3,7 @@ import sequelize from './config/db.config.js';
 import cors from 'cors';
 import {createServer} from 'node:http';
 import {Server} from 'socket.io';
+import dotenv from 'dotenv';
 import chatSocket from './sockets/chat.socket.js';
 import logger from 'morgan';
 
@@ -32,7 +33,7 @@ app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', roleRoutes);
 app.use('/api', notificationRoutes);
-import dotenv from 'dotenv';
+
 dotenv.config();
 app.use('/uploads', express.static('uploads'));
 

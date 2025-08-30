@@ -30,14 +30,4 @@ const Reaction = sequelize.define('Reaction', {
     timestamps: false
 });
 
-Reaction.belongsTo(Post, {
-    foreignKey: 'post_id',
-    onDelete: 'CASCADE'
-});
-
-Reaction.belongsTo(Profile, {
-    foreignKey: 'profile_id',
-    onDelete: 'CASCADE'
-});
-
 export default Reaction;
