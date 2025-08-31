@@ -47,11 +47,15 @@ function chatSocket(io) {
           user_id: message.user_id,
           content: message.content
         });
+        // asegurarse que el emisor está en la sala
+        socket.join(`chat_${chat.chat_id}`);
         io.to(`chat_${chat.chat_id}`).emit('new_message', {
+          message_id: savedMessage.message_id,
           chat_id: chat.chat_id,
           user_id: message.user_id,
           content: message.content,
-          sent_date: savedMessage.sent_date
+          sent_date: savedMessage.sent_date,
+          read_at: null
         });
       } catch (e) {
         console.error('[SOCKET] Error guardando mensaje por socket:', e.message);
