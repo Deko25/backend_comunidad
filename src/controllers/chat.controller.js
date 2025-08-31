@@ -3,7 +3,6 @@ import User from '../models/user.model.js';
 import Chat from '../models/chat.model.js';
 import UserChat from '../models/user_chat.model.js';
 import Message from '../models/message.model.js';
-import UserChat from '../models/user_chat.model.js';
 
 // Obtener lista de usuarios disponibles para chat
 export const getUsers = async (req, res) => {
