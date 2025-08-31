@@ -50,7 +50,8 @@ export const getProfile = async (req, res) => {
             where: { user_id },
             include: [{
                 model: User,
-                attributes: ['first_name', 'last_name', 'email']
+                // Incluir user_id para que el frontend pueda obtenerlo sin depender del campo root
+                attributes: ['user_id', 'first_name', 'last_name', 'email']
             }]
         });
 
