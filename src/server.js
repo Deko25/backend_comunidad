@@ -13,6 +13,8 @@ import profileRoutes from './routers/profile.router.js';
 import socialRoutes from './routers/social.router.js';
 import roleRoutes from './routers/role.router.js';
 import notificationRoutes from './routers/notification.router.js';
+import chatRoutes from './routers/chat.router.js';
+import chatEnsureRoutes from './routers/chat.ensure.router.js';
 
 import './models/associations.model.js';
 
@@ -30,6 +32,8 @@ app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', roleRoutes);
 app.use('/api', notificationRoutes);
+app.use('/api', chatRoutes);
+app.use('/api', chatEnsureRoutes);
 
 dotenv.config();
 app.use('/uploads', express.static('uploads'));

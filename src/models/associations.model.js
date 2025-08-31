@@ -67,3 +67,24 @@ Reaction.belongsTo(Profile, {
     foreignKey: 'profile_id'
 });
 
+// Asociaciones para Chat, UserChat y Message
+import Chat from './chat.model.js';
+import UserChat from './user_chat.model.js';
+import Message from './message.model.js';
+
+// Un chat tiene muchos mensajes
+Chat.hasMany(Message, { foreignKey: 'chat_id', onDelete: 'CASCADE' });
+Message.belongsTo(Chat, { foreignKey: 'chat_id' });
+
+// Un usuario tiene muchos mensajes
+User.hasMany(Message, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+Message.belongsTo(User, { foreignKey: 'user_id' });
+
+// Un chat tiene muchos participantes (UserChat)
+Chat.hasMany(UserChat, { foreignKey: 'chat_id', onDelete: 'CASCADE' });
+UserChat.belongsTo(Chat, { foreignKey: 'chat_id' });
+
+// Un usuario puede estar en muchos chats (UserChat)
+User.hasMany(UserChat, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+UserChat.belongsTo(User, { foreignKey: 'user_id' });
+

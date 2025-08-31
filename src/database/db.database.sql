@@ -79,7 +79,12 @@ CREATE TABLE "notifications" (
 
 CREATE TABLE "chats" (
 	"chat_id" SERIAL PRIMARY KEY,
-	"creation_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	"userAId" INTEGER NOT NULL,
+	"userBId" INTEGER NOT NULL,
+	"creation_date" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	CONSTRAINT unique_chat_users UNIQUE("userAId", "userBId"),
+	FOREIGN KEY("userAId") REFERENCES "users"("user_id") ON DELETE CASCADE,
+	FOREIGN KEY("userBId") REFERENCES "users"("user_id") ON DELETE CASCADE
 );
 
 CREATE TABLE "user_chats" (
