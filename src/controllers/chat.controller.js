@@ -5,14 +5,22 @@ import UserChat from '../models/user_chat.model.js';
 import Message from '../models/message.model.js';
 import Profile from '../models/profile.model.js';
 
-// Obtener lista de usuarios disponibles para chat
+// Obtener lista de usuarios disponibles para chat (excluye al actual) con foto de perfil
 export const getUsers = async (req, res) => {
   try {
-    // Prueba sin filtro para depuración
     const users = await User.findAll({
-      attributes: ['user_id', 'first_name', 'last_name']
+      where: { user_id: { [Op.ne]: req.user.id } },
+      attributes: ['user_id', 'first_name', 'last_name'],
+      include: [{ model: Profile, attributes: ['profile_photo'] }]
     });
-    res.json(users);
+    // Normalizar respuesta (aplanar profile_photo)
+    const normalized = users.map(u => ({
+      user_id: u.user_id,
+      first_name: u.first_name,
+      last_name: u.last_name,
+      profile_photo: u.Profile ? u.Profile.profile_photo : null
+    }));
+    res.json(normalized);
   } catch (err) {
     console.error('Error en getUsers:', err);
     res.status(500).json({ error: 'Error interno', details: err.message });
