@@ -24,16 +24,16 @@ router.post('/posts', protect, upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'file', maxCount: 1 }
 ]), createPost);
-router.delete('/posts/:postId', protect, deletePost);
-router.put('/posts/:postId', protect, upload.fields([
+router.delete('/posts/:post_id', protect, deletePost);
+router.put('/posts/:post_id', protect, upload.fields([
   { name: 'postFile', maxCount: 1 },
   { name: 'image', maxCount: 1 },
   { name: 'file', maxCount: 1 }
 ]), updatePost);
 
 // NUEVAS RUTAS PARA COMENTARIOS Y REACCIONES
-router.post('/posts/:postId/comments', protect, createComment);
-router.post('/posts/:postId/reactions', protect, createReaction);
+router.post('/posts/:post_id/comments', protect, createComment);
+router.post('/posts/:post_id/reactions', protect, createReaction);
 
 export default router;
 
