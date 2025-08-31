@@ -3,14 +3,10 @@ import sequelize from './config/db.config.js';
 import cors from 'cors';
 import {createServer} from 'node:http';
 import {Server} from 'socket.io';
+import dotenv from 'dotenv';
 import chatSocket from './sockets/chat.socket.js';
 import logger from 'morgan';
 
-import User from './models/user.model.js';
-import Profile from './models/profile.model.js';
-import Post from './models/post.model.js';
-import Comment from './models/comment.model.js';
-import Reaction from './models/reaction.model.js';
 
 import authRoutes from './routers/user.router.js';
 import profileRoutes from './routers/profile.router.js';
@@ -23,16 +19,18 @@ import './models/associations.model.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
 app.use(cors());
 app.use(logger('dev'))
-app.use(express.json());
-app.use('/uploads/profile_photos', express.static('uploads/profile_photos')); 
+
+app.use('/uploads', express.static('uploads'));
+
 app.use('/api', authRoutes);
 app.use('/api', profileRoutes);
 app.use('/api', socialRoutes);
 app.use('/api', roleRoutes);
 app.use('/api', notificationRoutes);
-import dotenv from 'dotenv';
+
 dotenv.config();
 app.use('/uploads', express.static('uploads'));
 

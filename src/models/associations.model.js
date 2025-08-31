@@ -29,3 +29,41 @@ Post.belongsTo(Profile, {
     foreignKey: 'profile_id'
 });
 
+// **NUEVAS ASOCIACIONES**
+
+// Relaciones entre Post y Comment
+Post.hasMany(Comment, {
+    foreignKey: 'post_id',
+    onDelete: 'CASCADE'
+});
+Comment.belongsTo(Post, {
+    foreignKey: 'post_id'
+});
+
+// Relaciones entre Profile y Comment
+Profile.hasMany(Comment, {
+    foreignKey: 'profile_id',
+    onDelete: 'CASCADE'
+});
+Comment.belongsTo(Profile, {
+    foreignKey: 'profile_id'
+});
+
+// Relaciones entre Post y Reaction
+Post.hasMany(Reaction, {
+    foreignKey: 'post_id',
+    onDelete: 'CASCADE'
+});
+Reaction.belongsTo(Post, {
+    foreignKey: 'post_id'
+});
+
+// Relaciones entre Profile y Reaction
+Profile.hasMany(Reaction, {
+    foreignKey: 'profile_id',
+    onDelete: 'CASCADE'
+});
+Reaction.belongsTo(Profile, {
+    foreignKey: 'profile_id'
+});
+

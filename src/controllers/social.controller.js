@@ -41,7 +41,6 @@ export const createPost = async (req, res) => {
             privacy,
         };
 
-        // Multer .fields() => req.files
         const files = req.files || {};
         const file = files.postFile?.[0] || files.image?.[0] || files.file?.[0];
         if (file && file.mimetype.startsWith('image/')) {
@@ -58,15 +57,12 @@ export const createPost = async (req, res) => {
 
         const newPost = await Post.create(postData);
 
-        // --- Notificación y Socket.io para todos los usuarios ---
         try {
             const Notification = (await import('../models/notification.model.js')).default;
             const userName = profile.User ? `${profile.User.first_name} ${profile.User.last_name}` : 'Alguien';
             const profilePhoto = profile.profile_photo || null;
             const message = `${userName} hizo una nueva publicación`;
-            // Obtener todos los perfiles (usuarios)
             const allProfiles = await Profile.findAll();
-            // Crear notificación para cada usuario
             const notifications = await Promise.all(
                 allProfiles.map(async (p) => {
                     const notif = await Notification.create({
@@ -75,7 +71,6 @@ export const createPost = async (req, res) => {
                         type: 'new_post',
                         status: 'unread'
                     });
-                    // Emitir por socket solo a los conectados (puedes personalizar esto)
                     if (req.app && req.app.get('io')) {
                         req.app.get('io').emit('new_notification', {
                             notification_id: notif.notification_id,
@@ -92,7 +87,6 @@ export const createPost = async (req, res) => {
                 })
             );
         } catch (notifErr) {
-            // Si falla la notificación, solo loguea el error, no afecta la publicación
             console.error('Error creando notificación:', notifErr);
         }
 
@@ -107,7 +101,6 @@ export const createPost = async (req, res) => {
 export const getPosts = async (req, res) => {
     try {
         const posts = await Post.findAll({
-            
             order: [['created_at', 'DESC']],
             include: [
                 {
@@ -117,6 +110,35 @@ export const getPosts = async (req, res) => {
                         model: User,
                         attributes: ['first_name', 'last_name', 'email']
                     }]
+                },
+                // Incluye los comentarios y la información del perfil que los hizo
+                {
+                    model: Comment,
+                    order: [['created_at', 'ASC']],
+                    include: [
+                        {
+                            model: Profile,
+                            attributes: ['profile_id', 'profile_photo'],
+                            include: [{
+                                model: User,
+                                attributes: ['first_name', 'last_name']
+                            }]
+                        }
+                    ]
+                },
+                // Incluye las reacciones y la información del perfil que las hizo
+                {
+                    model: Reaction,
+                    include: [
+                        {
+                            model: Profile,
+                            attributes: ['profile_id', 'profile_photo'],
+                            include: [{
+                                model: User,
+                                attributes: ['first_name', 'last_name']
+                            }]
+                        }
+                    ]
                 }
             ],
         });
@@ -130,7 +152,7 @@ export const getPosts = async (req, res) => {
 export const updatePost = async (req, res) => {
     const { postId } = req.params;
     const { text_content, image_url, code_url, file_url, privacy } = req.body;
-    const user_id = req.user.id; // Get user_id from JWT
+    const user_id = req.user.id;
 
     try {
         const profile = await Profile.findOne({ where: { user_id } });
@@ -143,7 +165,6 @@ export const updatePost = async (req, res) => {
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        // Correct security check
         if (post.profile_id !== profile.profile_id) {
             return res.status(403).json({ error: 'You do not have permission to update this post' });
         }
@@ -165,7 +186,7 @@ export const updatePost = async (req, res) => {
 
 export const deletePost = async (req, res) => {
     const { postId } = req.params;
-    const user_id = req.user.id; // Get user_id from JWT
+    const user_id = req.user.id;
 
     try {
         const profile = await Profile.findOne({ where: { user_id } });
@@ -178,7 +199,6 @@ export const deletePost = async (req, res) => {
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        // Correct security check
         if (post.profile_id !== profile.profile_id) {
             return res.status(403).json({ error: 'You do not have permission to delete this post' });
         }
@@ -193,7 +213,7 @@ export const deletePost = async (req, res) => {
 
 export const createComment = async (req, res) => {
     const { post_id } = req.params;
-    const user_id = req.user.id; // Correct way to get user_id
+    const user_id = req.user.id;
     const { content } = req.body;
     
     try {
@@ -209,11 +229,20 @@ export const createComment = async (req, res) => {
         
         const newComment = await Comment.create({
             post_id,
-            profile_id: profile.profile_id, // Use the correct profile_id
+            profile_id: profile.profile_id,
             content
         });
 
-        res.status(201).json(newComment);
+        // Obtener el comentario recién creado con la información del perfil del autor
+        const enrichedComment = await Comment.findByPk(newComment.comment_id, {
+            include: [{
+                model: Profile,
+                attributes: ['profile_id', 'profile_photo'],
+                include: [{ model: User, attributes: ['first_name', 'last_name'] }]
+            }]
+        });
+
+        res.status(201).json(enrichedComment);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error creating comment' });
@@ -222,7 +251,7 @@ export const createComment = async (req, res) => {
 
 export const createReaction = async (req, res) => {
     const { post_id } = req.params;
-    const user_id = req.user.id; // Correct way to get user_id
+    const user_id = req.user.id;
     const { reaction_type } = req.body;
     
     try {
@@ -236,13 +265,29 @@ export const createReaction = async (req, res) => {
             return res.status(404).json({ error: 'Post not found' });
         }
 
-        const newReaction = await Reaction.create({
-            post_id,
-            profile_id: profile.profile_id, // Use the correct profile_id
-            reaction_type
+        const [reaction, created] = await Reaction.findOrCreate({
+            where: {
+                post_id,
+                profile_id: profile.profile_id,
+            },
+            defaults: { reaction_type }
         });
 
-        res.status(201).json(newReaction);
+        if (!created) {
+            // Si la reacción ya existía, la actualizamos
+            await reaction.update({ reaction_type });
+        }
+
+        // Obtener la reacción (existente o nueva) con la información del perfil
+        const enrichedReaction = await Reaction.findByPk(reaction.reaction_id, {
+            include: [{
+                model: Profile,
+                attributes: ['profile_id', 'profile_photo'],
+                include: [{ model: User, attributes: ['first_name', 'last_name'] }]
+            }]
+        });
+
+        res.status(201).json(enrichedReaction);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Error creating reaction' });
