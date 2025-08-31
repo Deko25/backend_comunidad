@@ -3,6 +3,29 @@ import Chat from '../models/chat.model.js';
 import UserChat from '../models/user_chat.model.js';
 import Message from '../models/message.model.js';
 
+// Mapa para contar conexiones simultáneas por usuario (multi‑tab)
+const onlineUsersCount = new Map(); // userId -> count
+
+function addOnline(userId) {
+  const prev = onlineUsersCount.get(userId) || 0;
+  onlineUsersCount.set(userId, prev + 1);
+}
+
+function removeOnline(userId) {
+  const prev = onlineUsersCount.get(userId) || 0;
+  if (prev <= 1) {
+    onlineUsersCount.delete(userId);
+    return true; // se desconectó último
+  } else {
+    onlineUsersCount.set(userId, prev - 1);
+    return false;
+  }
+}
+
+function currentOnlineUserIds() {
+  return Array.from(onlineUsersCount.keys());
+}
+
 function chatSocket(io) {
   io.on('connection', (socket) => {
     console.log('[SOCKET] user connected:', socket.id);
@@ -12,7 +35,11 @@ function chatSocket(io) {
       if (Array.isArray(chatIds)) {
         chatIds.forEach(chatId => socket.join(`chat_${chatId}`));
       }
-      io.emit('user_online', userId);
+      addOnline(userId);
+      // Enviar al usuario la lista completa de conectados (incluyéndose)
+      socket.emit('online_users', currentOnlineUserIds());
+      // Notificar a los demás que este usuario está online
+      socket.broadcast.emit('user_online', userId);
     });
 
     socket.on('joinChat', ({ chatId }) => {
@@ -63,7 +90,10 @@ function chatSocket(io) {
     });
 
     socket.on('disconnect', () => {
-      if (socket.data.userId) io.emit('user_offline', socket.data.userId);
+      if (socket.data.userId) {
+        const last = removeOnline(socket.data.userId);
+        if (last) io.emit('user_offline', socket.data.userId);
+      }
     });
   });
 }

@@ -3,6 +3,7 @@ import User from '../models/user.model.js';
 import Chat from '../models/chat.model.js';
 import UserChat from '../models/user_chat.model.js';
 import Message from '../models/message.model.js';
+import Profile from '../models/profile.model.js';
 
 // Obtener lista de usuarios disponibles para chat
 export const getUsers = async (req, res) => {
@@ -38,7 +39,16 @@ export const getMessages = async (req, res) => {
     });
     // invertimos para mostrar ascendente
     const messages = rows.reverse();
-    const otherUser = await User.findByPk(otherUserId, { attributes: ['user_id', 'first_name', 'last_name'] });
+    const otherUserRaw = await User.findByPk(otherUserId, { 
+      attributes: ['user_id', 'first_name', 'last_name'],
+      include: [{ model: Profile, attributes: ['profile_photo'] }]
+    });
+    const otherUser = otherUserRaw ? {
+      user_id: otherUserRaw.user_id,
+      first_name: otherUserRaw.first_name,
+      last_name: otherUserRaw.last_name,
+      profile_photo: otherUserRaw.Profile ? otherUserRaw.Profile.profile_photo : null
+    } : null;
     // Calcular si hay más (si obtuvimos limit mensajes y existe uno más antiguo)
     let hasMore = false;
     if (rows.length === limit) {
@@ -133,7 +143,16 @@ export const getConversations = async (req, res) => {
     const result = [];
     for (const chat of chats) {
       const otherUserId = chat.userAId === userId ? chat.userBId : chat.userAId;
-      const otherUser = await User.findByPk(otherUserId, { attributes: ['user_id', 'first_name', 'last_name'] });
+      const otherUserRaw = await User.findByPk(otherUserId, { 
+        attributes: ['user_id', 'first_name', 'last_name'],
+        include: [{ model: Profile, attributes: ['profile_photo'] }]
+      });
+      const otherUser = otherUserRaw ? {
+        user_id: otherUserRaw.user_id,
+        first_name: otherUserRaw.first_name,
+        last_name: otherUserRaw.last_name,
+        profile_photo: otherUserRaw.Profile ? otherUserRaw.Profile.profile_photo : null
+      } : null;
       const lastMessage = await Message.findOne({ where: { chat_id: chat.chat_id }, order: [['sent_date', 'DESC']] });
       const unreadCount = await Message.count({ where: { chat_id: chat.chat_id, user_id: otherUserId, read_at: null } });
       result.push({
