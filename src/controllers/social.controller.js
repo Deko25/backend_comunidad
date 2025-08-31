@@ -150,7 +150,7 @@ export const getPosts = async (req, res) => {
 };
 
 export const updatePost = async (req, res) => {
-    const { postId } = req.params;
+    const { post_id } = req.params;
     const { text_content, image_url, code_url, file_url, privacy } = req.body;
     const user_id = req.user.id;
 
@@ -160,7 +160,7 @@ export const updatePost = async (req, res) => {
             return res.status(404).json({ error: 'Profile not found' });
         }
         
-        const post = await Post.findByPk(postId);
+        const post = await Post.findByPk(post_id);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
@@ -185,7 +185,7 @@ export const updatePost = async (req, res) => {
 };
 
 export const deletePost = async (req, res) => {
-    const { postId } = req.params;
+    const { post_id } = req.params;
     const user_id = req.user.id;
 
     try {
@@ -194,7 +194,7 @@ export const deletePost = async (req, res) => {
             return res.status(404).json({ error: 'Profile not found' });
         }
 
-        const post = await Post.findByPk(postId);
+        const post = await Post.findByPk(post_id);
         if (!post) {
             return res.status(404).json({ error: 'Post not found' });
         }
