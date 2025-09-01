@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.config.js';
 import Profile from './profile.model.js';
+import Post from './post.model.js';
 
 const Notification = sequelize.define('Notification', {
     notification_id: {
@@ -11,6 +12,12 @@ const Notification = sequelize.define('Notification', {
     profile_id: {
         type: DataTypes.INTEGER,
         allowNull: false
+    },
+    // Necesario para poder incluir correctamente el Post y obtener el autor
+    post_id: {
+        type: DataTypes.INTEGER,
+    // Se permite null para compatibilidad con notificaciones antiguas sin post asociado
+    allowNull: true
     },
     message: {
         type: DataTypes.TEXT,
@@ -35,6 +42,11 @@ const Notification = sequelize.define('Notification', {
 
 Notification.belongsTo(Profile, {
     foreignKey: 'profile_id',
+    onDelete: 'CASCADE'
+});
+
+Notification.belongsTo(Post, {
+    foreignKey: 'post_id',
     onDelete: 'CASCADE'
 });
 
