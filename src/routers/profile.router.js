@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateProfile, getProfile, getProfileStatus } from '../controllers/profile.controller.js';
+import { updateProfile, getProfile, getProfileStatus, updateProfilePhoto } from '../controllers/profile.controller.js';
 import { protect } from '../middleware/user.middleware.js'; 
 import multer from 'multer';
 
@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Ruta para solo actualizar la foto del perfil
+router.put('/profile/photo', protect, upload.single('profilePhoto'), updateProfilePhoto);
 router.put('/profile', protect, upload.single('profilePhoto'), updateProfile);
 router.get('/profile', protect, getProfile);
 router.get('/profile/status', protect, getProfileStatus); 
