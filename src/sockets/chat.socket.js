@@ -53,6 +53,7 @@ function chatSocket(io) {
 
     socket.on('send_message', async ({ chat_id, chatId, message }) => {
       const realChatId = chat_id || chatId;
+        // si falta el objeto message o sus campos clave, se sale silenciosamente.
       if (!message || !message.user_id || !message.to_user_id || !message.content) return;
       try {
         let chat = realChatId ? await Chat.findByPk(realChatId) : null;

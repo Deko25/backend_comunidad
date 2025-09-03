@@ -29,17 +29,17 @@ export const getUsers = async (req, res) => {
 
 // Obtener historial de mensajes entre dos usuarios
 export const getMessages = async (req, res) => {
-  const userId = req.user.id;
-  const otherUserId = parseInt(req.params.userId);
-  const limit = Math.min(parseInt(req.query.limit) || 50, 100);
-  const before = req.query.before ? new Date(req.query.before) : null;
+  const userId = req.user.id;  // usu autenticado
+  const otherUserId = parseInt(req.params.userId); //otro usuario con el que se quiere chatear
+  const limit = Math.min(parseInt(req.query.limit) || 50, 100);// max 100 pa no sobre cargar la pag
+  const before = req.query.before ? new Date(req.query.before) : null; //soporte pag hacia atras
   try {
-    const userAId = Math.min(userId, otherUserId);
+    const userAId = Math.min(userId, otherUserId); // ordernar id y evitar duplicado 
     const userBId = Math.max(userId, otherUserId);
     let chat = await Chat.findOne({ where: { userAId, userBId } });
-    if (!chat) return res.json({ messages: [], otherUser: null, hasMore: false });
-    const where = { chat_id: chat.chat_id };
-    if (before) where.sent_date = { [Op.lt]: before };
+    if (!chat) return res.json({ messages: [], otherUser: null, hasMore: false }); //develve vacios si no hay mess o user
+    const where = { chat_id: chat.chat_id }; // filtros mensajes de chat
+    if (before) where.sent_date = { [Op.lt]: before }; //mensajes anterior a la fecha
     const rows = await Message.findAll({
       where,
       order: [['sent_date', 'DESC']],
@@ -51,7 +51,7 @@ export const getMessages = async (req, res) => {
       attributes: ['user_id', 'first_name', 'last_name'],
       include: [{ model: Profile, attributes: ['profile_photo'] }]
     });
-    const otherUser = otherUserRaw ? {
+    const otherUser = otherUserRaw ? { //normaliza para el front llegue plano
       user_id: otherUserRaw.user_id,
       first_name: otherUserRaw.first_name,
       last_name: otherUserRaw.last_name,
@@ -98,7 +98,7 @@ export const sendMessage = async (req, res) => {
       content
     });
     // Emitir por socket (si está disponible)
-    const io = req.app.get('io');
+    const io = req.app.get('io'); //recupera las instancia de socket si esta guarda en express
     if (io) {
       io.to(`chat_${chat.chat_id}`).emit('new_message', {
         message_id: message.message_id,
@@ -132,7 +132,7 @@ export const markChatRead = async (req, res) => {
   try {
     await Message.update(
       { read_at: new Date() },
-      { where: { chat_id: chatId, user_id: { [Op.ne]: req.user.id }, read_at: null } }
+      { where: { chat_id: chatId, user_id: { [Op.ne]: req.user.id }, read_at: null } } //solo meg actuales/ solo meg que no fueron enviados por el user autenti/solo meg que no tiene marca de lectura
     );
     res.json({ success: true });
   } catch (err) {
@@ -145,32 +145,32 @@ export const getConversations = async (req, res) => {
   const userId = req.user.id;
   try {
     const chats = await Chat.findAll({
-      where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },
+      where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },  // busca todos los chat en los que paticipa el user actual 
       order: [['creation_date', 'DESC']]
     });
-    const result = [];
+    const result = []; //guardar la conversacion
     for (const chat of chats) {
-      const otherUserId = chat.userAId === userId ? chat.userBId : chat.userAId;
+      const otherUserId = chat.userAId === userId ? chat.userBId : chat.userAId; // cada chat tiene 2 user se identifica cual es el otro user en la conver
       const otherUserRaw = await User.findByPk(otherUserId, { 
         attributes: ['user_id', 'first_name', 'last_name'],
         include: [{ model: Profile, attributes: ['profile_photo'] }]
       });
       const otherUser = otherUserRaw ? {
-        user_id: otherUserRaw.user_id,
+        user_id: otherUserRaw.user_id,// objeto plano para el frontend mas comodo
         first_name: otherUserRaw.first_name,
         last_name: otherUserRaw.last_name,
         profile_photo: otherUserRaw.Profile ? otherUserRaw.Profile.profile_photo : null
       } : null;
-      const lastMessage = await Message.findOne({ where: { chat_id: chat.chat_id }, order: [['sent_date', 'DESC']] });
-      const unreadCount = await Message.count({ where: { chat_id: chat.chat_id, user_id: otherUserId, read_at: null } });
-      result.push({
+      const lastMessage = await Message.findOne({ where: { chat_id: chat.chat_id }, order: [['sent_date', 'DESC']] }); // busca el ultimo mensaje enviado , mostrar el preview de la conver
+      const unreadCount = await Message.count({ where: { chat_id: chat.chat_id, user_id: otherUserId, read_at: null } }); // cuanta mensajes no leidos
+      result.push({ //construye el objeto de la conversacion con toda la info
         chat_id: chat.chat_id,
         otherUser,
         lastMessage,
         unreadCount
       });
     }
-    res.json(result);
+    res.json(result);  // devuelve el resultado a frontend
   } catch (err) {
     res.status(500).json({ error: 'Error fetching conversations' });
   }
